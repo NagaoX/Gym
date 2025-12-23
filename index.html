@@ -406,7 +406,6 @@
             );
         };
 
-
         // --- COMPONENTE: CARD DE EXERCÍCIO ---
         const ExerciseCard = ({ exercise, isDone, onCheck, onEdit }) => {
             const [showImg, setShowImg] = useState(false);
@@ -478,6 +477,103 @@
                 </div>
             );
         };
+
+        // --- COMPONENTE: MODAL DE ADICIONAR EXERCÍCIO ---
+        const AddExerciseModal = ({ onClose, onAdd }) => {
+            const [name, setName] = useState(BASIC_EXERCISES_LIST[0]);
+            const [customName, setCustomName] = useState('');
+            const [isCustom, setIsCustom] = useState(false);
+            const [isCardio, setIsCardio] = useState(false);
+            
+            // Form states
+            const [sets, setSets] = useState('3');
+            const [reps, setReps] = useState('12');
+            const [load, setLoad] = useState('10');
+            const [rest, setRest] = useState('60');
+
+            const handleSave = () => {
+                const finalName = isCustom ? customName : name;
+                if (!finalName) return;
+                onAdd({
+                    name: finalName,
+                    sets,
+                    reps,
+                    load,
+                    rest,
+                    isCardio
+                });
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white w-full max-w-lg rounded-t-[32px] p-8 animate-slide-up max-h-[90vh] overflow-y-auto">
+                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+                        <h3 className="text-xl font-bold mb-6 text-gray-900">Adicionar Exercício</h3>
+                        
+                        <div className="space-y-4">
+                            {/* Nome do Exercício */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex justify-between">
+                                    Nome
+                                    <button onClick={() => setIsCustom(!isCustom)} className="text-blue-500 underline">
+                                        {isCustom ? 'Selecionar da lista' : 'Digitar nome'}
+                                    </button>
+                                </label>
+                                {isCustom ? (
+                                    <input type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="Ex: Burpee" className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" />
+                                ) : (
+                                    <select value={name} onChange={e => setName(e.target.value)} className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none appearance-none">
+                                        {BASIC_EXERCISES_LIST.map(ex => <option key={ex} value={ex}>{ex}</option>)}
+                                    </select>
+                                )}
+                            </div>
+
+                            {/* Tipo */}
+                            <div className="flex items-center gap-3 py-2">
+                                <Switch enabled={isCardio} setEnabled={setIsCardio} />
+                                <span className="font-medium text-gray-700">É um exercício de Cardio?</span>
+                            </div>
+
+                            {/* Configurações */}
+                            {!isCardio ? (
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Séries</label>
+                                        <input type="number" value={sets} onChange={e => setSets(e.target.value)} className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Reps</label>
+                                        <input type="number" value={reps} onChange={e => setReps(e.target.value)} className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Tempo (min)</label>
+                                    <input type="number" value={reps} onChange={e => setReps(e.target.value)} className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" />
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">{isCardio ? 'Nível/Carga' : 'Carga (kg)'}</label>
+                                <input type="number" value={load} onChange={e => setLoad(e.target.value)} className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" />
+                            </div>
+
+                            {!isCardio && (
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Descanso (s)</label>
+                                    <input type="number" value={rest} onChange={e => setRest(e.target.value)} className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3 mt-8">
+                            <button onClick={onClose} className="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl">Cancelar</button>
+                            <button onClick={handleSave} className="flex-1 py-4 font-bold text-white bg-black rounded-2xl">Adicionar</button>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
 
         // --- APP PRINCIPAL ---
         const FlexLogApp = () => {
@@ -640,7 +736,7 @@
             };
 
             const addExerciseToTemp = (data) => {
-                const isCardio = isCardioSelected; 
+                const isCardio = data.isCardio; 
                 const formattedReps = isCardio ? data.reps : `${data.sets} x ${data.reps}`;
                 
                 const newExercise = {
@@ -653,8 +749,6 @@
                 };
                 setTempWorkoutList([...tempWorkoutList, newExercise]);
                 setShowAddModal(false);
-                setIsCustomExercise(false); 
-                setIsCardioSelected(false);
             };
 
             // Drag Functions for Temp List
@@ -886,6 +980,71 @@
                                 </div>
                             </section>
                         </main>
+                    </div>
+                );
+            }
+
+            if (view === 'edit_workout') {
+                return (
+                    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 pb-32 animate-fade-in relative">
+                        {/* Header */}
+                        <div className="bg-white sticky top-0 z-20 px-6 py-4 shadow-sm border-b border-gray-100 flex justify-between items-center">
+                            <button onClick={cancelWorkoutChanges} className="p-2 -ml-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-colors">
+                                <X size={24} />
+                            </button>
+                            <h2 className="text-xl font-black italic tracking-tight uppercase">EDITAR TREINO {currentWorkout}</h2>
+                            <button onClick={saveWorkoutChanges} className="p-2 -mr-2 text-green-500 hover:bg-green-50 rounded-full transition-colors font-bold">
+                                <Check size={24} />
+                            </button>
+                        </div>
+
+                        {/* Drag Notification */}
+                        <div className="bg-blue-50 p-3 text-center text-xs text-blue-600 font-bold border-b border-blue-100">
+                            Segure e arraste para reordenar
+                        </div>
+
+                        {/* List */}
+                        <div className="p-6 space-y-3">
+                            {tempWorkoutList.map((ex, idx) => (
+                                <DraggableListItem 
+                                    key={ex.id || idx}
+                                    index={idx}
+                                    totalItems={tempWorkoutList.length}
+                                    onDelete={() => removeExerciseFromTemp(idx)}
+                                    onDragStart={onDragStart}
+                                    onDragOver={onDragOver}
+                                    onDrop={onDropTemp}
+                                    onMoveUp={moveUp}
+                                    onMoveDown={moveDown}
+                                >
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 text-sm">{ex.name}</h4>
+                                        <p className="text-[10px] text-gray-500 mt-0.5 font-bold uppercase tracking-wide">
+                                            {ex.reps} • {ex.load}kg • {ex.rest}s
+                                        </p>
+                                    </div>
+                                </DraggableListItem>
+                            ))}
+                        </div>
+
+                         {/* Add Button */}
+                        <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center max-w-lg mx-auto pointer-events-none">
+                            <button 
+                                onClick={() => setShowAddModal(true)} 
+                                className="bg-black text-white px-6 py-4 rounded-full font-bold shadow-2xl flex items-center gap-2 pointer-events-auto hover:scale-105 transition-transform active:scale-95"
+                            >
+                                <Plus size={20} strokeWidth={3} />
+                                <span>Adicionar Exercício</span>
+                            </button>
+                        </div>
+
+                        {/* Add Modal */}
+                        {showAddModal && (
+                            <AddExerciseModal 
+                                onClose={() => setShowAddModal(false)}
+                                onAdd={addExerciseToTemp}
+                            />
+                        )}
                     </div>
                 );
             }
