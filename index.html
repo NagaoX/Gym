@@ -125,7 +125,7 @@
             "Tríceps Pulley", "Tríceps Testa"
         ].sort(); 
 
-        // --- MODELOS DE TREINO (Mesmo do anterior, resumido para brevidade no exemplo, mas completo no uso) ---
+        // --- MODELOS DE TREINO ---
         const WORKOUT_TEMPLATES = {
             female: {
                 beginner: {
@@ -703,9 +703,15 @@
                             </div>
                             <h2 className="text-xl font-black text-gray-900 mb-4 uppercase tracking-wide">Aviso Importante<br/>de Saúde e Segurança</h2>
                             <div className="text-sm text-gray-600 space-y-4 text-justify leading-relaxed mb-8 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
-                                <p>Os treinos e exercícios pré-carregados neste aplicativo possuem caráter exclusivamente ilustrativo.</p>
-                                <p>O desenvolvedor deste aplicativo não é um profissional de educação física.</p>
-                                <p>Antes de iniciar qualquer atividade física, consulte um profissional.</p>
+                                <p>
+                                    Os treinos e exercícios pré-carregados neste aplicativo possuem caráter exclusivamente ilustrativo, servindo apenas para demonstrar as funcionalidades do sistema.
+                                </p>
+                                <p>
+                                    O desenvolvedor deste aplicativo não é um profissional de educação física ou da área da saúde. O conteúdo aqui presente não substitui, em hipótese alguma, a orientação e prescrição de um Profissional de Educação Física habilitado.
+                                </p>
+                                <p>
+                                    Antes de iniciar qualquer atividade física, consulte um profissional para avaliar suas condições físicas e prescrever um treino adequado aos seus objetivos e limitações. A prática de exercícios sem orientação pode resultar em lesões graves.
+                                </p>
                             </div>
                             <div className="flex flex-col gap-3">
                                 <button onClick={() => setView('login')} className="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg">Concordo</button>
@@ -763,6 +769,28 @@
             }
 
             if (view === 'dashboard') {
+                const today = new Date();
+                const currentDay = today.getDay(); 
+                const diffToMonday = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+                
+                const monday = new Date(today);
+                monday.setDate(diffToMonday);
+                
+                const weekDays = [];
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(monday);
+                    d.setDate(monday.getDate() + i);
+                    weekDays.push(d);
+                }
+
+                const sunday = new Date(monday);
+                sunday.setDate(monday.getDate() + 6);
+
+                const weekRange = `${monday.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})} - ${sunday.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}`;
+
+                // Count workouts this week
+                const workoutsThisWeek = weekDays.filter(d => user.history.find(h => h.date === d.toLocaleDateString('pt-BR'))).length;
+
                 const workoutKeys = Object.keys(user.workouts);
                 return (
                     <div className="max-w-lg mx-auto min-h-screen pb-24 animate-fade-in relative">
@@ -801,6 +829,37 @@
                                             <button onClick={(e) => { e.stopPropagation(); goToEditMode(type); }} className="absolute top-3 right-3 p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-500 hover:text-black transition-colors z-10 shadow-sm" title="Editar Treino"><Settings size={16} /></button>
                                         </div>
                                     ))}
+                                </div>
+                            </section>
+                            <section className="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar size={18} className="text-blue-500" />
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 leading-none">Esta Semana</h3>
+                                            <p className="text-[10px] text-gray-400 font-medium mt-0.5">{weekRange}</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-bold">
+                                        {workoutsThisWeek} treinos
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-end">
+                                    {weekDays.map((d, i) => {
+                                        const dateStr = d.toLocaleDateString('pt-BR');
+                                        const workoutDone = user.history.find(h => h.date === dateStr);
+                                        const weekDay = d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 1).toUpperCase();
+                                        const isFuture = d > new Date(); 
+                                        
+                                        return (
+                                            <div key={i} className={`flex flex-col items-center gap-2 ${isFuture ? 'opacity-30' : ''}`}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${workoutDone ? 'bg-green-500 text-white shadow-md scale-110' : 'bg-gray-100 text-gray-300'}`}>
+                                                    {workoutDone ? workoutDone.type : ''}
+                                                </div>
+                                                <span className={`text-[10px] font-bold ${workoutDone ? 'text-black' : 'text-gray-300'}`}>{weekDay}</span>
+                                            </div>
+                                        )
+                                    })}
                                 </div>
                             </section>
                         </main>
