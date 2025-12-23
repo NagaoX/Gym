@@ -48,10 +48,12 @@
         
         // Initialize Polyfill for Mobile Drag & Drop
         var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        MobileDragDrop.polyfill({
-            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
-            holdToDrag: iOS ? 100 : 50 // Press hold delay
-        });
+        if (typeof MobileDragDrop !== 'undefined') {
+            MobileDragDrop.polyfill({
+                dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
+                holdToDrag: iOS ? 100 : 50
+            });
+        }
     </script>
     
     <style>
@@ -881,7 +883,7 @@
                             </div>
                             {tempWorkoutList.map((ex, idx) => (
                                 <DraggableListItem 
-                                    key={idx} 
+                                    key={ex.id || idx} 
                                     index={idx}
                                     totalItems={tempWorkoutList.length}
                                     onDelete={() => removeExerciseFromTemp(idx)}
