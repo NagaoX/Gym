@@ -73,6 +73,20 @@
             return n.includes('(cardio)') || n.includes('eliptico') || n.includes('remo indoor') || n.includes('esteira') || n.includes('bike');
         };
 
+        // --- HELPER: NORMALIZE FILENAME ---
+        // Transforma "Supino Inclinado (Halter)" em "supino_inclinado.gif"
+        const getFileName = (name) => {
+            if (!name) return "";
+            return "imagens/" + name.toLowerCase()
+                .split('(')[0] // Remove o que está entre parenteses (ex: (Halter))
+                .trim()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos (Tríceps -> Triceps)
+                .replace(/ \/ /g, '_') // Troca " / " por "_"
+                .replace(/ /g, '_') // Troca espaços por "_"
+                .replace(/[^a-z0-9_]/g, '') // Remove caracteres especiais
+                + ".gif";
+        };
+
         // --- LISTA DE EXERCÍCIOS BÁSICOS (EM ORDEM ALFABÉTICA) ---
         const BASIC_EXERCISES_LIST = [
             "Abdominal Infra", 
@@ -588,7 +602,7 @@
                     reps: formattedReps,
                     load: data.load,
                     rest: isCardio ? '0' : data.rest,
-                    img: isCardio ? '' : (data.img || `imagens/${data.name.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '')}.gif`)
+                    img: isCardio ? '' : (data.img || getFileName(data.name))
                 };
                 setTempWorkoutList([...tempWorkoutList, newExercise]);
                 setShowAddModal(false);
@@ -822,10 +836,13 @@
                                                         
                                                         // Auto-fill logic
                                                         if (!cardio) {
-                                                            const autoImg = "imagens/" + e.target.value.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '') + ".gif";
-                                                            // We need to wait for render if we want to fill the input, but react state update is async.
-                                                            // Since we conditional render, the input might not exist yet if switching from cardio to normal.
-                                                            // Simple timeout or ref would work, but let's rely on user or default logic for now to keep simple.
+                                                            const autoImg = getFileName(e.target.value);
+                                                            const imgInput = document.querySelector('input[name="img"]');
+                                                            if(imgInput) imgInput.value = autoImg;
+                                                        } else {
+                                                            // Clear image field if cardio
+                                                            const imgInput = document.querySelector('input[name="img"]');
+                                                            if(imgInput) imgInput.value = "";
                                                         }
                                                     } 
                                                 }}>
