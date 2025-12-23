@@ -243,6 +243,7 @@
         const ArrowRight = (props) => <IconBase {...props}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></IconBase>;
         const Trash2 = (props) => <IconBase {...props}><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></IconBase>;
         const MoreHorizontal = (props) => <IconBase {...props}><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></IconBase>;
+        const AlertTriangle = (props) => <IconBase {...props}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></IconBase>;
 
 
         // --- COMPONENTE: SWITCH (IOS STYLE) ---
@@ -385,7 +386,7 @@
                     setUser(JSON.parse(saved));
                     setView('dashboard');
                 } else {
-                    setView('login');
+                    setView('disclaimer'); // Start at disclaimer if no user
                 }
             }, []);
 
@@ -496,6 +497,62 @@
             // Views
             if (view === 'loading') return null;
 
+            if (view === 'disclaimer') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-white animate-fade-in relative">
+                        <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 text-center">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <AlertTriangle className="text-red-500" size={32} />
+                            </div>
+                            <h2 className="text-xl font-black text-gray-900 mb-4 uppercase tracking-wide">Aviso Importante<br/>de Saúde e Segurança</h2>
+                            <div className="text-sm text-gray-600 space-y-4 text-justify leading-relaxed mb-8 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
+                                <p>
+                                    Os treinos e exercícios pré-carregados neste aplicativo possuem caráter exclusivamente ilustrativo, servindo apenas para demonstrar as funcionalidades do sistema.
+                                </p>
+                                <p>
+                                    O desenvolvedor deste aplicativo não é um profissional de educação física ou da área da saúde. O conteúdo aqui presente não substitui, em hipótese alguma, a orientação e prescrição de um Profissional de Educação Física habilitado.
+                                </p>
+                                <p>
+                                    Antes de iniciar qualquer atividade física, consulte um profissional para avaliar suas condições físicas e prescrever um treino adequado aos seus objetivos e limitações. A prática de exercícios sem orientação pode resultar em lesões graves.
+                                </p>
+                            </div>
+                            
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={() => setView('login')}
+                                    className="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
+                                >
+                                    Concordo
+                                </button>
+                                <button 
+                                    onClick={() => setView('goodbye')}
+                                    className="w-full bg-gray-100 text-gray-500 p-4 rounded-2xl font-bold text-lg hover:bg-gray-200 transition-all"
+                                >
+                                    Sair
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'goodbye') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50 animate-fade-in">
+                        <div className="text-center">
+                            <h1 className="text-2xl font-bold text-gray-400 mb-2">Aplicação Encerrada</h1>
+                            <p className="text-gray-400 text-sm">Você optou por não concordar com os termos.</p>
+                            <button 
+                                onClick={() => setView('disclaimer')}
+                                className="mt-8 text-blue-500 font-bold text-sm underline"
+                            >
+                                Voltar ao início
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
             if (view === 'login') {
                 return (
                     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-white animate-fade-in">
@@ -602,9 +659,18 @@
                                 <p className="text-gray-500 font-medium text-sm">Bem-vindo(a) de volta,</p>
                                 <h2 className="text-3xl font-black tracking-tight text-gray-900">{user.name}</h2>
                             </div>
-                            <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xl font-bold text-gray-700">
+                            <button 
+                                onClick={() => {
+                                    if(confirm("Deseja sair e trocar de usuário?")) {
+                                        setUser(null);
+                                        setView('disclaimer'); // Volta para o disclaimer
+                                    }
+                                }}
+                                className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-200 transition-colors"
+                                title="Trocar Usuário"
+                            >
                                 {user.name.charAt(0).toUpperCase()}
-                            </div>
+                            </button>
                         </header>
 
                         <main className="p-6 space-y-8">
