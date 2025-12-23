@@ -60,16 +60,167 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // --- LISTA DE EXERCÍCIOS BÁSICOS ---
+        // --- LISTA DE EXERCÍCIOS BÁSICOS (EXPANDIDA) ---
         const BASIC_EXERCISES_LIST = [
             "Agachamento Livre", "Agachamento Smith", "Leg Press 45°", "Cadeira Extensora", "Mesa Flexora", "Stiff", "Elevação Pélvica",
             "Supino Reto (Barra)", "Supino Inclinado (Halter)", "Crucifixo", "Peck Deck / Voador",
             "Puxada Alta / Frente", "Remada Baixa", "Remada Curvada", "Graviton",
-            "Desenvolvimento Halteres", "Elevação Lateral", "Elevação Frontal",
+            "Desenvolvimento Halteres", "Elevação Lateral", "Elevação Frontal", "Encolhimento",
             "Rosca Direta", "Rosca Martelo", "Rosca Scott",
-            "Tríceps Corda", "Tríceps Testa", "Tríceps Francês",
+            "Tríceps Corda", "Tríceps Testa", "Tríceps Francês", "Tríceps Pulley",
             "Abdominal Supra", "Abdominal Infra", "Prancha", "Esteira (Cardio)", "Bike (Cardio)"
         ];
+
+        // --- BASE DE DADOS DE TREINOS (6 MODELOS) ---
+        const WORKOUT_TEMPLATES = {
+            female: {
+                beginner: {
+                    A: [
+                        { id: 'fa1', name: "Agachamento Livre (Halter)", reps: "3 x 12", rest: "60", load: "Peso corpo/Leve", img: "imagens/agachamento_livre.gif" },
+                        { id: 'fa2', name: "Leg Press 45°", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/leg_press_45.gif" },
+                        { id: 'fa3', name: "Supino Máquina", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/supino_maquina.gif" },
+                        { id: 'fa4', name: "Puxada Frente", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/puxada_frente.gif" },
+                        { id: 'fa5', name: "Abdominal Supra", reps: "3 x 15", rest: "45", load: "-", img: "imagens/abdominal_supra.gif" }
+                    ],
+                    B: [
+                        { id: 'fb1', name: "Afundo/Avanço", reps: "3 x 10 (cada)", rest: "60", load: "Peso corpo", img: "imagens/avanco_smith.gif" },
+                        { id: 'fb2', name: "Mesa Flexora", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/flexora.gif" },
+                        { id: 'fb3', name: "Desenvolvimento Halter", reps: "3 x 10", rest: "60", load: "Leve", img: "imagens/desenvolvimento_halter.gif" },
+                        { id: 'fb4', name: "Rosca Direta", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/rosca_direta.gif" },
+                        { id: 'fb5', name: "Tríceps Pulley", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/triceps_pulley.gif" }
+                    ]
+                },
+                intermediate: {
+                    // O modelo original que você já tinha
+                    A: [
+                        { id: 'a1', name: "Agachamento Smith", reps: "4 x 8-10", rest: "90", load: "20-35kg", img: "imagens/agachamento_smith.gif" },
+                        { id: 'a2', name: "Leg Press 45°", reps: "3 x 10-12", rest: "60-90", load: "70-90kg", img: "imagens/leg_press_45.gif" },
+                        { id: 'a3', name: "Avanço no Smith", reps: "3 x 10 (cada)", rest: "60", load: "10-15kg", img: "imagens/avanco_smith.gif" },
+                        { id: 'a4', name: "Cadeira Extensora", reps: "3 x 12-15", rest: "45", load: "25-35kg", img: "imagens/cadeira_extensora.gif" },
+                        { id: 'a5', name: "Panturrilha Smith", reps: "4 x 15-20", rest: "45", load: "30-45kg", img: "imagens/panturrilha_smith.gif" },
+                        { id: 'a6', name: "Abdominal Supra", reps: "4 x 20", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_supra.gif" }
+                    ],
+                    B: [
+                        { id: 'b1', name: "Desenvolvimento Máq.", reps: "3 x 10-12", rest: "60", load: "10-15kg", img: "imagens/desenvolvimento_maquina.gif" },
+                        { id: 'b2', name: "Elevação Lateral", reps: "4 x 12-15", rest: "45", load: "4-6kg", img: "imagens/elevacao_lateral.gif" },
+                        { id: 'b3', name: "Tríceps Corda", reps: "3 x 12", rest: "45", load: "15-20kg", img: "imagens/triceps_corda.gif" },
+                        { id: 'b4', name: "Tríceps Francês", reps: "3 x 12", rest: "45", load: "5-8kg", img: "imagens/triceps_frances.gif" },
+                        { id: 'b5', name: "Abdominal Infra", reps: "4 x 15", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_infra.gif" }
+                    ],
+                    C: [
+                        { id: 'c1', name: "Elevação Pélvica", reps: "4 x 10-12", rest: "90", load: "40-60kg", img: "imagens/elevacao_pelvica.gif" },
+                        { id: 'c2', name: "Stiff", reps: "4 x 10", rest: "60-90", load: "30-45kg", img: "imagens/stiff.gif" },
+                        { id: 'c3', name: "Flexora", reps: "3 x 12", rest: "60", load: "30-45kg", img: "imagens/flexora.gif" },
+                        { id: 'c4', name: "Cadeira Abdutora", reps: "3 x 15-20", rest: "45", load: "60-85kg", img: "imagens/cadeira_abdutora.gif" },
+                        { id: 'c5', name: "Agachamento Sumô", reps: "3 x 12", rest: "60", load: "16-24kg", img: "imagens/agachamento_sumo.gif" },
+                        { id: 'c6', name: "Prancha Abdominal", reps: "4 x 45s", rest: "30", load: "Isometria", img: "imagens/prancha.gif" }
+                    ],
+                    D: [
+                        { id: 'd1', name: "Graviton", reps: "3 x 10-12", rest: "60", load: "P/ 10 reps", img: "imagens/graviton.gif" },
+                        { id: 'd2', name: "Puxada Frente", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/puxada_frente.gif" },
+                        { id: 'd3', name: "Supino Máquina", reps: "3 x 12", rest: "60", load: "15-25kg", img: "imagens/supino_maquina.gif" },
+                        { id: 'd4', name: "Remada Baixa", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/remada_baixa.gif" },
+                        { id: 'd5', name: "Rosca Halter", reps: "3 x 12", rest: "45", load: "5-7kg", img: "imagens/rosca_halter.gif" },
+                        { id: 'd6', name: "Abdominal Remador", reps: "4 x Falha", rest: "30", load: "Peso corpo", img: "imagens/abdominal_remador.gif" }
+                    ]
+                },
+                advanced: {
+                    A: [ // Glúteos e Posterior Foco
+                        { id: 'aa1', name: "Elevação Pélvica", reps: "4 x 8-10", rest: "90", load: "Pesado", img: "imagens/elevacao_pelvica.gif" },
+                        { id: 'aa2', name: "RDL / Stiff", reps: "4 x 10", rest: "90", load: "Pesado", img: "imagens/stiff.gif" },
+                        { id: 'aa3', name: "Mesa Flexora", reps: "3 x 12", rest: "60", load: "Moderado", img: "imagens/flexora.gif" },
+                        { id: 'aa4', name: "Cadeira Abdutora", reps: "3 x 20", rest: "45", load: "Moderado", img: "imagens/cadeira_abdutora.gif" }
+                    ],
+                    B: [ // Superiores Completo
+                        { id: 'ab1', name: "Puxada Frente", reps: "4 x 10", rest: "60", load: "Moderado", img: "imagens/puxada_frente.gif" },
+                        { id: 'ab2', name: "Remada Curvada", reps: "3 x 12", rest: "60", load: "Moderado", img: "imagens/remada_curvada.gif" },
+                        { id: 'ab3', name: "Desenvolvimento", reps: "3 x 10", rest: "60", load: "Moderado", img: "imagens/desenvolvimento_halter.gif" },
+                        { id: 'ab4', name: "Elevação Lateral", reps: "4 x 15", rest: "45", load: "Leve", img: "imagens/elevacao_lateral.gif" }
+                    ],
+                    C: [ // Quadríceps Foco
+                        { id: 'ac1', name: "Agachamento Livre", reps: "4 x 8", rest: "120", load: "Pesado", img: "imagens/agachamento_livre.gif" },
+                        { id: 'ac2', name: "Leg Press 45", reps: "4 x 10", rest: "90", load: "Pesado", img: "imagens/leg_press_45.gif" },
+                        { id: 'ac3', name: "Cadeira Extensora", reps: "3 x 15", rest: "60", load: "Moderado", img: "imagens/cadeira_extensora.gif" },
+                        { id: 'ac4', name: "Panturrilha", reps: "4 x 15", rest: "45", load: "Moderado", img: "imagens/panturrilha_smith.gif" }
+                    ],
+                    D: [ // Cardio e Core
+                        { id: 'ad1', name: "HIIT Esteira", reps: "20 min", rest: "-", load: "-", img: "imagens/esteira.gif" },
+                        { id: 'ad2', name: "Prancha", reps: "4 x 1 min", rest: "60", load: "-", img: "imagens/prancha.gif" },
+                        { id: 'ad3', name: "Abdominal Infra", reps: "4 x 15", rest: "45", load: "-", img: "imagens/abdominal_infra.gif" }
+                    ]
+                }
+            },
+            male: {
+                beginner: {
+                    A: [ // Superior
+                        { id: 'ma1', name: "Supino Reto Máquina", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/supino_maquina.gif" },
+                        { id: 'ma2', name: "Puxada Frente", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/puxada_frente.gif" },
+                        { id: 'ma3', name: "Desenvolvimento Máq", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/desenvolvimento_maquina.gif" },
+                        { id: 'ma4', name: "Rosca Direta", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/rosca_direta.gif" },
+                        { id: 'ma5', name: "Tríceps Pulley", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/triceps_pulley.gif" }
+                    ],
+                    B: [ // Inferior + Abs
+                        { id: 'mb1', name: "Leg Press 45", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/leg_press_45.gif" },
+                        { id: 'mb2', name: "Cadeira Extensora", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/cadeira_extensora.gif" },
+                        { id: 'mb3', name: "Mesa Flexora", reps: "3 x 12", rest: "60", load: "Leve", img: "imagens/flexora.gif" },
+                        { id: 'mb4', name: "Panturrilha", reps: "3 x 15", rest: "45", load: "Leve", img: "imagens/panturrilha_smith.gif" },
+                        { id: 'mb5', name: "Abdominal Supra", reps: "3 x 20", rest: "45", load: "-", img: "imagens/abdominal_supra.gif" }
+                    ]
+                },
+                intermediate: { // ABC (Push/Pull/Legs)
+                    A: [ // Empurrar (Peito/Ombro/Tríceps)
+                        { id: 'mia1', name: "Supino Reto Barra", reps: "4 x 8-10", rest: "90", load: "Moderado", img: "imagens/supino_reto.gif" },
+                        { id: 'mia2', name: "Supino Inclinado Halter", reps: "3 x 10", rest: "60", load: "Moderado", img: "imagens/supino_inclinado.gif" },
+                        { id: 'mia3', name: "Desenvolvimento Halter", reps: "3 x 10", rest: "60", load: "Moderado", img: "imagens/desenvolvimento_halter.gif" },
+                        { id: 'mia4', name: "Elevação Lateral", reps: "4 x 12", rest: "45", load: "Leve", img: "imagens/elevacao_lateral.gif" },
+                        { id: 'mia5', name: "Tríceps Corda", reps: "3 x 12", rest: "45", load: "Moderado", img: "imagens/triceps_corda.gif" }
+                    ],
+                    B: [ // Puxar (Costas/Bíceps)
+                        { id: 'mib1', name: "Puxada Frente", reps: "4 x 10", rest: "60", load: "Moderado", img: "imagens/puxada_frente.gif" },
+                        { id: 'mib2', name: "Remada Baixa", reps: "3 x 12", rest: "60", load: "Moderado", img: "imagens/remada_baixa.gif" },
+                        { id: 'mib3', name: "Remada Curvada", reps: "3 x 10", rest: "90", load: "Moderado", img: "imagens/remada_curvada.gif" },
+                        { id: 'mib4', name: "Rosca Direta", reps: "3 x 10", rest: "45", load: "Moderado", img: "imagens/rosca_direta.gif" },
+                        { id: 'mib5', name: "Rosca Martelo", reps: "3 x 12", rest: "45", load: "Moderado", img: "imagens/rosca_martelo.gif" }
+                    ],
+                    C: [ // Pernas
+                        { id: 'mic1', name: "Agachamento Livre", reps: "4 x 8", rest: "120", load: "Pesado", img: "imagens/agachamento_livre.gif" },
+                        { id: 'mic2', name: "Leg Press 45", reps: "4 x 10", rest: "90", load: "Pesado", img: "imagens/leg_press_45.gif" },
+                        { id: 'mic3', name: "Cadeira Extensora", reps: "3 x 12", rest: "60", load: "Moderado", img: "imagens/cadeira_extensora.gif" },
+                        { id: 'mic4', name: "Mesa Flexora", reps: "3 x 12", rest: "60", load: "Moderado", img: "imagens/flexora.gif" },
+                        { id: 'mic5', name: "Panturrilha", reps: "4 x 15", rest: "45", load: "Moderado", img: "imagens/panturrilha_smith.gif" }
+                    ]
+                },
+                advanced: { // ABCD
+                    A: [ // Peito e Tríceps
+                        { id: 'maa1', name: "Supino Reto", reps: "4 x 6-8", rest: "120", load: "Pesado", img: "imagens/supino_reto.gif" },
+                        { id: 'maa2', name: "Supino Inclinado", reps: "3 x 8-10", rest: "90", load: "Pesado", img: "imagens/supino_inclinado.gif" },
+                        { id: 'maa3', name: "Crucifixo Máquina", reps: "3 x 12", rest: "60", load: "Moderado", img: "imagens/peck_deck.gif" },
+                        { id: 'maa4', name: "Tríceps Testa", reps: "3 x 10", rest: "60", load: "Moderado", img: "imagens/triceps_testa.gif" },
+                        { id: 'maa5', name: "Tríceps Corda", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/triceps_corda.gif" }
+                    ],
+                    B: [ // Costas e Bíceps
+                        { id: 'mab1', name: "Barra Fixa / Graviton", reps: "4 x Falha", rest: "90", load: "-", img: "imagens/graviton.gif" },
+                        { id: 'mab2', name: "Remada Curvada", reps: "4 x 8", rest: "90", load: "Pesado", img: "imagens/remada_curvada.gif" },
+                        { id: 'mab3', name: "Puxada Frente", reps: "3 x 10", rest: "60", load: "Moderado", img: "imagens/puxada_frente.gif" },
+                        { id: 'mab4', name: "Rosca Direta Barra", reps: "3 x 10", rest: "60", load: "Moderado", img: "imagens/rosca_direta.gif" },
+                        { id: 'mab5', name: "Rosca Scott", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/rosca_scott.gif" }
+                    ],
+                    C: [ // Pernas
+                        { id: 'mac1', name: "Agachamento Livre", reps: "4 x 6-8", rest: "180", load: "Pesado", img: "imagens/agachamento_livre.gif" },
+                        { id: 'mac2', name: "Leg Press 45", reps: "4 x 10", rest: "120", load: "Pesado", img: "imagens/leg_press_45.gif" },
+                        { id: 'mac3', name: "Stiff", reps: "3 x 10", rest: "90", load: "Moderado", img: "imagens/stiff.gif" },
+                        { id: 'mac4', name: "Cadeira Extensora", reps: "3 x 15", rest: "60", load: "Leve", img: "imagens/cadeira_extensora.gif" },
+                        { id: 'mac5', name: "Panturrilha", reps: "5 x 15", rest: "45", load: "Moderado", img: "imagens/panturrilha_smith.gif" }
+                    ],
+                    D: [ // Ombros e Trapézio
+                        { id: 'mad1', name: "Desenvolvimento Militar", reps: "4 x 8", rest: "90", load: "Pesado", img: "imagens/desenvolvimento_halter.gif" },
+                        { id: 'mad2', name: "Elevação Lateral", reps: "4 x 12", rest: "45", load: "Leve", img: "imagens/elevacao_lateral.gif" },
+                        { id: 'mad3', name: "Elevação Frontal", reps: "3 x 12", rest: "45", load: "Leve", img: "imagens/elevacao_frontal.gif" },
+                        { id: 'mad4', name: "Encolhimento", reps: "4 x 15", rest: "45", load: "Pesado", img: "imagens/encolhimento.gif" }
+                    ]
+                }
+            }
+        };
 
         // --- ÍCONES SVG NATIVOS ---
         const IconBase = ({ children, size = 24, color = "currentColor", strokeWidth = 2, className = "", ...props }) => (
@@ -94,41 +245,6 @@
         const MoreHorizontal = (props) => <IconBase {...props}><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></IconBase>;
 
 
-        // --- DADOS DOS TREINOS (Caminhos Locais - AGORA COM .GIF) ---
-        const INITIAL_WORKOUTS = {
-            A: [
-                { id: 'a1', name: "Agachamento Smith", reps: "4 x 8-10", rest: "90", load: "20-35kg", img: "imagens/agachamento_smith.gif" },
-                { id: 'a2', name: "Leg Press 45°", reps: "3 x 10-12", rest: "60-90", load: "70-90kg", img: "imagens/leg_press_45.gif" },
-                { id: 'a3', name: "Avanço no Smith", reps: "3 x 10 (cada)", rest: "60", load: "10-15kg", img: "imagens/avanco_smith.gif" },
-                { id: 'a4', name: "Cadeira Extensora", reps: "3 x 12-15", rest: "45", load: "25-35kg", img: "imagens/cadeira_extensora.gif" },
-                { id: 'a5', name: "Panturrilha Smith", reps: "4 x 15-20", rest: "45", load: "30-45kg", img: "imagens/panturrilha_smith.gif" },
-                { id: 'a6', name: "Abdominal Supra", reps: "4 x 20", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_supra.gif" }
-            ],
-            B: [
-                { id: 'b1', name: "Desenvolvimento Máq.", reps: "3 x 10-12", rest: "60", load: "10-15kg", img: "imagens/desenvolvimento_maquina.gif" },
-                { id: 'b2', name: "Elevação Lateral (Halter)", reps: "4 x 12-15", rest: "45", load: "4-6kg", img: "imagens/elevacao_lateral.gif" },
-                { id: 'b3', name: "Tríceps Corda (Polia)", reps: "3 x 12", rest: "45", load: "15-20kg", img: "imagens/triceps_corda.gif" },
-                { id: 'b4', name: "Tríceps Francês (Halter)", reps: "3 x 12", rest: "45", load: "5-8kg", img: "imagens/triceps_frances.gif" },
-                { id: 'b5', name: "Abdominal Infra (Pernas)", reps: "4 x 15", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_infra.gif" }
-            ],
-            C: [
-                { id: 'c1', name: "Elevação Pélvica", reps: "4 x 10-12", rest: "90", load: "40-60kg", img: "imagens/elevacao_pelvica.gif" },
-                { id: 'c2', name: "Stiff (Barra/Halter)", reps: "4 x 10", rest: "60-90", load: "30-45kg", img: "imagens/stiff.gif" },
-                { id: 'c3', name: "Flexora (Sentada/Deitada)", reps: "3 x 12", rest: "60", load: "30-45kg", img: "imagens/flexora.gif" },
-                { id: 'c4', name: "Cadeira Abdutora", reps: "3 x 15-20", rest: "45", load: "60-85kg", img: "imagens/cadeira_abdutora.gif" },
-                { id: 'c5', name: "Agachamento Sumô", reps: "3 x 12", rest: "60", load: "16-24kg", img: "imagens/agachamento_sumo.gif" },
-                { id: 'c6', name: "Prancha Abdominal", reps: "4 x 45s", rest: "30", load: "Isometria", img: "imagens/prancha.gif" }
-            ],
-            D: [
-                { id: 'd1', name: "Graviton (Barra Fixa)", reps: "3 x 10-12", rest: "60", load: "P/ 10 reps", img: "imagens/graviton.gif" },
-                { id: 'd2', name: "Puxada Frente", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/puxada_frente.gif" },
-                { id: 'd3', name: "Supino Máquina", reps: "3 x 12", rest: "60", load: "15-25kg", img: "imagens/supino_maquina.gif" },
-                { id: 'd4', name: "Remada Baixa Neutra", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/remada_baixa.gif" },
-                { id: 'd5', name: "Rosca Halter (Bíceps)", reps: "3 x 12", rest: "45", load: "5-7kg", img: "imagens/rosca_halter.gif" },
-                { id: 'd6', name: "Abdominal Remador", reps: "4 x Falha", rest: "30", load: "Peso corpo", img: "imagens/abdominal_remador.gif" }
-            ]
-        };
-
         // --- COMPONENTE: SWITCH (IOS STYLE) ---
         const Switch = ({ enabled, setEnabled }) => (
             <button
@@ -145,7 +261,6 @@
             const [startX, setStartX] = useState(0);
             const [isSwiping, setIsSwiping] = useState(false);
 
-            // Handlers para Touch (Celular)
             const onTouchStart = (e) => {
                 setStartX(e.touches[0].clientX);
                 setIsSwiping(true);
@@ -155,7 +270,6 @@
                 if (!isSwiping) return;
                 const currentX = e.touches[0].clientX;
                 const diff = currentX - startX;
-                // Permitir apenas deslizar para a esquerda (negativo), limite até -80px
                 if (diff < 0 && diff > -100) {
                     setOffsetX(diff);
                 }
@@ -163,7 +277,6 @@
 
             const onTouchEnd = () => {
                 setIsSwiping(false);
-                // Se deslizou mais que 40px, trava aberto. Se não, fecha.
                 if (offsetX < -40) {
                     setOffsetX(-80);
                 } else {
@@ -173,15 +286,12 @@
 
             return (
                 <div className="relative overflow-hidden mb-3 rounded-2xl">
-                    {/* Background (Lixeira) */}
                     <div className="absolute inset-0 bg-red-500 flex items-center justify-end pr-6 rounded-2xl">
                         <button onClick={onDelete} className="text-white flex items-center gap-2">
                             <span className="text-xs font-bold uppercase">Excluir</span>
                             <Trash2 size={24} />
                         </button>
                     </div>
-
-                    {/* Foreground (Conteúdo) */}
                     <div
                         className="bg-white relative z-10 transition-transform duration-200 ease-out"
                         style={{ transform: `translateX(${offsetX}px)` }}
@@ -203,21 +313,16 @@
             return (
                 <div className={`bg-white rounded-[24px] p-5 mb-4 shadow-sm border transition-all duration-300 ${isDone ? 'border-green-400 bg-green-50/30' : 'border-gray-100'}`}>
                     <div className="flex items-start gap-4">
-                        {/* Check Button */}
                         <button 
                             onClick={onCheck}
                             className={`mt-1 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${isDone ? 'bg-green-500 border-green-500 text-white scale-110 shadow-md' : 'bg-transparent border-gray-300 hover:border-green-400 text-transparent'}`}
                         >
                             <Check size={18} strokeWidth={3} />
                         </button>
-                        
-                        {/* Content */}
                         <div className="flex-1 min-w-0" onClick={() => !isDone && onCheck()}>
                             <h4 className={`font-bold text-gray-900 text-lg leading-tight transition-all ${isDone ? 'opacity-50 line-through decoration-2' : ''}`}>
                                 {exercise.name}
                             </h4>
-                            
-                            {/* Tags/Detalhes */}
                             <div className={`flex flex-wrap items-center gap-2 mt-2 ${isDone ? 'opacity-50' : ''}`}>
                                 <div className="bg-gray-100 px-3 py-1 rounded-lg text-xs font-bold text-gray-600 uppercase tracking-wide">
                                     {exercise.reps} Reps
@@ -230,8 +335,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        {/* Actions (Switch & Edit) */}
                         <div className="flex flex-col items-center gap-3 shrink-0">
                             <Switch enabled={showImg} setEnabled={setShowImg} />
                             <button 
@@ -242,8 +345,6 @@
                             </button>
                         </div>
                     </div>
-
-                    {/* Collapsible Image Area */}
                     <div className={`transition-all duration-300 overflow-hidden ${showImg ? 'max-h-64 mt-4 opacity-100' : 'max-h-0 opacity-0'}`}>
                         <div className="rounded-2xl overflow-hidden aspect-video bg-gray-200 relative flex items-center justify-center">
                             <img 
@@ -251,7 +352,7 @@
                                 alt={exercise.name} 
                                 className="w-full h-full object-cover" 
                                 onError={(e) => {
-                                    e.target.style.display = 'none'; // Esconde a imagem quebrada
+                                    e.target.style.display = 'none';
                                     e.target.parentElement.innerHTML = `<div class='flex flex-col items-center justify-center h-full w-full bg-gray-100 text-gray-400 text-xs text-center p-4'><span class='font-bold mb-1'>Foto não encontrada</span>Salvar como:<br/>${exercise.img}</div>`;
                                 }}
                             />
@@ -265,84 +366,80 @@
         // --- APP PRINCIPAL ---
         const FlexLogApp = () => {
             const [user, setUser] = useState(null);
-            const [view, setView] = useState('loading'); // loading, login, dashboard, workout, edit_workout
+            const [view, setView] = useState('loading'); 
             const [currentWorkout, setCurrentWorkout] = useState(null);
             const [completedExercises, setCompletedExercises] = useState([]);
             const [showFinishedModal, setShowFinishedModal] = useState(false);
             const [editingIndex, setEditingIndex] = useState(null);
             const [showAddModal, setShowAddModal] = useState(false);
-            const [isCustomExercise, setIsCustomExercise] = useState(false); // State para o toggle de exercício customizado
+            const [isCustomExercise, setIsCustomExercise] = useState(false);
 
-            // Carregar dados
+            // Novos estados para o cadastro
+            const [newUserName, setNewUserName] = useState('');
+            const [newUserGender, setNewUserGender] = useState('female');
+            const [newUserLevel, setNewUserLevel] = useState('beginner');
+
             useEffect(() => {
-                const saved = localStorage.getItem('gym_user_v1'); // Nova chave para o novo nome
+                const saved = localStorage.getItem('gym_user_v2'); // Versão 2 para nova estrutura
                 if (saved) {
                     setUser(JSON.parse(saved));
                     setView('dashboard');
                 } else {
-                    // Tenta migrar do antigo se existir
-                    const oldData = localStorage.getItem('flexlog_user_v1');
-                    if (oldData) {
-                         const parsedOld = JSON.parse(oldData);
-                         // Atualiza os workouts para usar as novas imagens locais
-                         parsedOld.workouts = INITIAL_WORKOUTS; 
-                         setUser(parsedOld);
-                         setView('dashboard');
-                    } else {
-                        setView('login');
-                    }
+                    setView('login');
                 }
             }, []);
 
-            // Salvar dados automaticamente
             useEffect(() => {
                 if (user) {
-                    localStorage.setItem('gym_user_v1', JSON.stringify(user));
+                    localStorage.setItem('gym_user_v2', JSON.stringify(user));
                 }
             }, [user]);
 
-            // Lógica de Sugestão
             const getSuggestedWorkout = () => {
+                if (!user?.workouts) return 'A';
                 if (!user?.history || user.history.length === 0) return 'A';
+                
                 const last = user.history[user.history.length - 1].type;
-                const types = ['A', 'B', 'C', 'D'];
+                const types = Object.keys(user.workouts); // Dinâmico (A, B, C...)
                 const nextIndex = (types.indexOf(last) + 1) % types.length;
                 return types[nextIndex];
             };
 
             const suggested = useMemo(() => getSuggestedWorkout(), [user]);
 
-            // Calcular dias para troca de treino (Ciclo de 60 dias)
             const getDaysRemaining = () => {
                 if (!user?.history) return 60;
                 return Math.max(0, 60 - user.history.length);
             };
 
-            // Login Handler
-            const handleLogin = (name) => {
+            const handleLogin = () => {
+                if (!newUserName) return;
+
+                // Seleciona o template correto
+                const selectedWorkouts = WORKOUT_TEMPLATES[newUserGender][newUserLevel];
+
                 const newUser = {
-                    name,
-                    workouts: INITIAL_WORKOUTS,
+                    name: newUserName,
+                    gender: newUserGender,
+                    level: newUserLevel,
+                    workouts: selectedWorkouts, // Carrega o treino específico
                     history: []
                 };
                 setUser(newUser);
                 setView('dashboard');
             };
 
-            // Start Workout Handler
             const startWorkout = (type) => {
                 setCurrentWorkout(type);
                 setCompletedExercises([]);
                 setView('workout');
             };
 
-            // Go to Edit Mode
             const goToEditMode = (type) => {
                 setCurrentWorkout(type);
                 setView('edit_workout');
             }
 
-            // Finish Workout Handler
             const finishWorkout = () => {
                 const today = new Date().toLocaleDateString('pt-BR');
                 const newHistory = [...user.history, { date: today, type: currentWorkout }];
@@ -350,7 +447,6 @@
                 setShowFinishedModal(true);
             };
 
-            // Edit Exercise Handler (during workout)
             const saveEdit = (reps, load, rest) => {
                 const newWorkouts = { ...user.workouts };
                 newWorkouts[currentWorkout][editingIndex] = {
@@ -363,8 +459,6 @@
                 setEditingIndex(null);
             };
 
-            // --- FUNÇÕES DE GERENCIAMENTO DE TREINO (ADD/REMOVE) ---
-            
             const removeExercise = (indexToRemove) => {
                 if(confirm("Tem certeza que deseja excluir este exercício?")){
                     const updatedExercises = user.workouts[currentWorkout].filter((_, idx) => idx !== indexToRemove);
@@ -380,7 +474,7 @@
 
             const addExercise = (data) => {
                 const newExercise = {
-                    id: Date.now().toString(), // simples ID único
+                    id: Date.now().toString(), 
                     name: data.name,
                     reps: data.reps,
                     load: data.load,
@@ -396,9 +490,8 @@
                     }
                 });
                 setShowAddModal(false);
-                setIsCustomExercise(false); // Resetar ao fechar
+                setIsCustomExercise(false); 
             };
-
 
             // Views
             if (view === 'loading') return null;
@@ -410,24 +503,74 @@
                             <Dumbbell className="text-white" size={32} />
                         </div>
                         <h1 className="text-3xl font-black mb-2 tracking-tight text-center">Gym</h1>
-                        <p className="text-gray-500 mb-8 text-center max-w-xs">Seu assistente pessoal para evolução de carga e consistência.</p>
+                        <p className="text-gray-500 mb-8 text-center max-w-xs">Monte seu perfil para gerar o treino ideal.</p>
                         
-                        <div className="w-full max-w-sm space-y-4">
-                            <input 
-                                type="text" 
-                                id="nameInput"
-                                placeholder="Como você se chama?"
-                                className="w-full p-4 rounded-2xl bg-gray-100 text-lg font-medium outline-none focus:ring-2 focus:ring-black transition-all"
-                                onKeyDown={(e) => e.key === 'Enter' && handleLogin(e.target.value)}
-                            />
+                        <div className="w-full max-w-sm space-y-6">
+                            
+                            {/* Nome */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Seu Nome</label>
+                                <input 
+                                    type="text" 
+                                    value={newUserName}
+                                    onChange={(e) => setNewUserName(e.target.value)}
+                                    placeholder="Ex: João Silva"
+                                    className="w-full p-4 rounded-2xl bg-gray-100 text-lg font-medium outline-none focus:ring-2 focus:ring-black transition-all"
+                                />
+                            </div>
+
+                            {/* Gênero */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Gênero</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button 
+                                        onClick={() => setNewUserGender('male')}
+                                        className={`p-4 rounded-2xl font-bold transition-all ${newUserGender === 'male' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}
+                                    >
+                                        Homem
+                                    </button>
+                                    <button 
+                                        onClick={() => setNewUserGender('female')}
+                                        className={`p-4 rounded-2xl font-bold transition-all ${newUserGender === 'female' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}
+                                    >
+                                        Mulher
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Nível */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Nível de Experiência</label>
+                                <div className="space-y-2">
+                                    <button 
+                                        onClick={() => setNewUserLevel('beginner')}
+                                        className={`w-full p-4 rounded-2xl font-bold text-left transition-all flex justify-between items-center ${newUserLevel === 'beginner' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}
+                                    >
+                                        <span>Iniciante</span>
+                                        {newUserLevel === 'beginner' && <Check size={18} />}
+                                    </button>
+                                    <button 
+                                        onClick={() => setNewUserLevel('intermediate')}
+                                        className={`w-full p-4 rounded-2xl font-bold text-left transition-all flex justify-between items-center ${newUserLevel === 'intermediate' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}
+                                    >
+                                        <span>Intermediário</span>
+                                        {newUserLevel === 'intermediate' && <Check size={18} />}
+                                    </button>
+                                    <button 
+                                        onClick={() => setNewUserLevel('advanced')}
+                                        className={`w-full p-4 rounded-2xl font-bold text-left transition-all flex justify-between items-center ${newUserLevel === 'advanced' ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}
+                                    >
+                                        <span>Avançado</span>
+                                        {newUserLevel === 'advanced' && <Check size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
                             <button 
-                                onClick={() => {
-                                    const val = document.getElementById('nameInput').value;
-                                    if(val) handleLogin(val);
-                                }}
-                                className="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
+                                onClick={handleLogin}
+                                className="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg mt-4"
                             >
-                                Começar Agora
+                                Gerar Treino
                             </button>
                         </div>
                     </div>
@@ -435,10 +578,8 @@
             }
 
             if (view === 'dashboard') {
-                // Cálculo para o Calendário da Semana Atual (Segunda a Domingo)
                 const today = new Date();
-                const currentDay = today.getDay(); // 0 = Domingo, 1 = Segunda
-                // Se for domingo (0), volta 6 dias para pegar a segunda anterior. Se for outro dia, volta (dia - 1).
+                const currentDay = today.getDay(); 
                 const diffToMonday = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
                 
                 const monday = new Date(today);
@@ -451,9 +592,11 @@
                     weekDays.push(d);
                 }
 
+                // Chaves de treino disponíveis (A, B, C...)
+                const workoutKeys = Object.keys(user.workouts);
+
                 return (
                     <div className="max-w-lg mx-auto min-h-screen pb-24 animate-fade-in relative">
-                        {/* Header */}
                         <header className="p-6 pt-10 flex justify-between items-end bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm/50">
                             <div>
                                 <p className="text-gray-500 font-medium text-sm">Bem-vindo(a) de volta,</p>
@@ -466,7 +609,6 @@
 
                         <main className="p-6 space-y-8">
                             
-                            {/* Ciclo de Treino */}
                             <div className="bg-orange-50 rounded-2xl p-4 border border-orange-100 flex items-center gap-4">
                                 <div className="bg-orange-100 p-2 rounded-xl text-orange-600">
                                     <Trophy size={20} />
@@ -480,7 +622,6 @@
                                 </div>
                             </div>
 
-                            {/* Sugestão de Hoje */}
                             <section>
                                 <div className="flex items-center gap-2 mb-3">
                                     <div className="h-2 w-2 rounded-full bg-black"></div>
@@ -497,7 +638,7 @@
                                         <div className="text-left">
                                             <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm">Recomendado</span>
                                             <h2 className="text-4xl font-black mt-2 italic">TREINO {suggested}</h2>
-                                            <p className="text-white/60 text-sm mt-1 font-medium">{user.workouts[suggested].length} exercícios</p>
+                                            <p className="text-white/60 text-sm mt-1 font-medium">{user.workouts[suggested]?.length || 0} exercícios</p>
                                         </div>
                                         <div className="bg-white text-black h-12 w-12 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform">
                                             <ArrowRight size={24} />
@@ -506,14 +647,13 @@
                                 </button>
                             </section>
 
-                            {/* Lista de Treinos */}
                             <section>
                                 <div className="flex items-center gap-2 mb-3">
                                     <div className="h-2 w-2 rounded-full bg-gray-300"></div>
                                     <h3 className="font-bold text-lg text-gray-500">Todos os Treinos</h3>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    {['A', 'B', 'C', 'D'].map(type => (
+                                    {workoutKeys.map(type => (
                                         <div key={type} className="relative group">
                                             <button 
                                                 onClick={() => startWorkout(type)}
@@ -528,7 +668,6 @@
                                                 </div>
                                             </button>
                                             
-                                            {/* Botão de Editar (Engrenagem) */}
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); goToEditMode(type); }}
                                                 className="absolute top-3 right-3 p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-500 hover:text-black transition-colors z-10 shadow-sm"
@@ -541,7 +680,6 @@
                                 </div>
                             </section>
 
-                            {/* Calendário Semanal (Segunda a Domingo) */}
                             <section className="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Calendar size={18} className="text-blue-500" />
@@ -552,7 +690,7 @@
                                         const dateStr = d.toLocaleDateString('pt-BR');
                                         const workoutDone = user.history.find(h => h.date === dateStr);
                                         const weekDay = d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 1).toUpperCase();
-                                        const isFuture = d > new Date(); // Desabilitar visualmente dias futuros
+                                        const isFuture = d > new Date(); 
                                         
                                         return (
                                             <div key={i} className={`flex flex-col items-center gap-2 ${isFuture ? 'opacity-30' : ''}`}>
@@ -570,11 +708,9 @@
                 );
             }
 
-            // --- VIEW: EDIT WORKOUT MODE ---
             if (view === 'edit_workout') {
                 return (
                     <div className="max-w-lg mx-auto min-h-screen bg-gray-50 pb-32 animate-fade-in relative">
-                         {/* Header */}
                          <div className="bg-white sticky top-0 z-20 px-6 py-4 shadow-sm border-b border-gray-100 flex items-center justify-between">
                             <button 
                                 onClick={() => setView('dashboard')}
@@ -639,7 +775,6 @@
                                         });
                                     }} className="space-y-4">
                                         
-                                        {/* SELETOR DE EXERCÍCIO OU INPUT MANUAL */}
                                         <div>
                                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
                                                 Nome do Exercício
@@ -653,7 +788,6 @@
                                                     onChange={(e) => {
                                                         if (e.target.value === 'custom') {
                                                             setIsCustomExercise(true);
-                                                            // Limpa o valor para não enviar 'custom'
                                                             e.target.value = '';
                                                         }
                                                     }}
@@ -718,13 +852,11 @@
                 );
             }
 
-            // --- VIEW: WORKOUT EXECUTION ---
             if (view === 'workout') {
                 const progress = Math.round((completedExercises.length / user.workouts[currentWorkout].length) * 100);
 
                 return (
                     <div className="max-w-lg mx-auto min-h-screen bg-gray-50 pb-32 animate-fade-in">
-                        {/* Workout Header */}
                         <div className="bg-white sticky top-0 z-20 px-6 py-4 shadow-sm border-b border-gray-100">
                             <div className="flex items-center justify-between mb-4">
                                 <button 
@@ -737,10 +869,9 @@
                                     <h2 className="text-xl font-black italic tracking-tight">TREINO {currentWorkout}</h2>
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{completedExercises.length} de {user.workouts[currentWorkout].length}</p>
                                 </div>
-                                <div className="w-10"></div> {/* Spacer */}
+                                <div className="w-10"></div> 
                             </div>
                             
-                            {/* Progress Bar */}
                             <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div 
                                     className="h-full bg-black transition-all duration-500 ease-out"
@@ -767,7 +898,6 @@
                             ))}
                         </main>
 
-                        {/* Finish Button Floating */}
                         <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent max-w-lg mx-auto">
                             <button 
                                 onClick={finishWorkout}
