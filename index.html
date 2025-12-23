@@ -94,40 +94,38 @@
         const MoreHorizontal = (props) => <IconBase {...props}><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></IconBase>;
 
 
-        // --- DADOS DOS TREINOS (Caminhos Locais) ---
-        // ATENÇÃO: Crie uma pasta chamada 'imagens' junto com este arquivo
-        // e adicione as fotos com os nomes abaixo.
+        // --- DADOS DOS TREINOS (Caminhos Locais - AGORA COM .GIF) ---
         const INITIAL_WORKOUTS = {
             A: [
-                { id: 'a1', name: "Agachamento Smith", reps: "4 x 8-10", rest: "90", load: "20-35kg", img: "imagens/agachamento_smith.jpg" },
-                { id: 'a2', name: "Leg Press 45°", reps: "3 x 10-12", rest: "60-90", load: "70-90kg", img: "imagens/leg_press_45.jpg" },
-                { id: 'a3', name: "Avanço no Smith", reps: "3 x 10 (cada)", rest: "60", load: "10-15kg", img: "imagens/avanco_smith.jpg" },
-                { id: 'a4', name: "Cadeira Extensora", reps: "3 x 12-15", rest: "45", load: "25-35kg", img: "imagens/cadeira_extensora.jpg" },
-                { id: 'a5', name: "Panturrilha Smith", reps: "4 x 15-20", rest: "45", load: "30-45kg", img: "imagens/panturrilha_smith.jpg" },
-                { id: 'a6', name: "Abdominal Supra", reps: "4 x 20", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_supra.jpg" }
+                { id: 'a1', name: "Agachamento Smith", reps: "4 x 8-10", rest: "90", load: "20-35kg", img: "imagens/agachamento_smith.gif" },
+                { id: 'a2', name: "Leg Press 45°", reps: "3 x 10-12", rest: "60-90", load: "70-90kg", img: "imagens/leg_press_45.gif" },
+                { id: 'a3', name: "Avanço no Smith", reps: "3 x 10 (cada)", rest: "60", load: "10-15kg", img: "imagens/avanco_smith.gif" },
+                { id: 'a4', name: "Cadeira Extensora", reps: "3 x 12-15", rest: "45", load: "25-35kg", img: "imagens/cadeira_extensora.gif" },
+                { id: 'a5', name: "Panturrilha Smith", reps: "4 x 15-20", rest: "45", load: "30-45kg", img: "imagens/panturrilha_smith.gif" },
+                { id: 'a6', name: "Abdominal Supra", reps: "4 x 20", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_supra.gif" }
             ],
             B: [
-                { id: 'b1', name: "Desenvolvimento Máq.", reps: "3 x 10-12", rest: "60", load: "10-15kg", img: "imagens/desenvolvimento_maquina.jpg" },
-                { id: 'b2', name: "Elevação Lateral (Halter)", reps: "4 x 12-15", rest: "45", load: "4-6kg", img: "imagens/elevacao_lateral.jpg" },
-                { id: 'b3', name: "Tríceps Corda (Polia)", reps: "3 x 12", rest: "45", load: "15-20kg", img: "imagens/triceps_corda.jpg" },
-                { id: 'b4', name: "Tríceps Francês (Halter)", reps: "3 x 12", rest: "45", load: "5-8kg", img: "imagens/triceps_frances.jpg" },
-                { id: 'b5', name: "Abdominal Infra (Pernas)", reps: "4 x 15", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_infra.jpg" }
+                { id: 'b1', name: "Desenvolvimento Máq.", reps: "3 x 10-12", rest: "60", load: "10-15kg", img: "imagens/desenvolvimento_maquina.gif" },
+                { id: 'b2', name: "Elevação Lateral (Halter)", reps: "4 x 12-15", rest: "45", load: "4-6kg", img: "imagens/elevacao_lateral.gif" },
+                { id: 'b3', name: "Tríceps Corda (Polia)", reps: "3 x 12", rest: "45", load: "15-20kg", img: "imagens/triceps_corda.gif" },
+                { id: 'b4', name: "Tríceps Francês (Halter)", reps: "3 x 12", rest: "45", load: "5-8kg", img: "imagens/triceps_frances.gif" },
+                { id: 'b5', name: "Abdominal Infra (Pernas)", reps: "4 x 15", rest: "30", load: "Peso do corpo", img: "imagens/abdominal_infra.gif" }
             ],
             C: [
-                { id: 'c1', name: "Elevação Pélvica", reps: "4 x 10-12", rest: "90", load: "40-60kg", img: "imagens/elevacao_pelvica.jpg" },
-                { id: 'c2', name: "Stiff (Barra/Halter)", reps: "4 x 10", rest: "60-90", load: "30-45kg", img: "imagens/stiff.jpg" },
-                { id: 'c3', name: "Flexora (Sentada/Deitada)", reps: "3 x 12", rest: "60", load: "30-45kg", img: "imagens/flexora.jpg" },
-                { id: 'c4', name: "Cadeira Abdutora", reps: "3 x 15-20", rest: "45", load: "60-85kg", img: "imagens/cadeira_abdutora.jpg" },
-                { id: 'c5', name: "Agachamento Sumô", reps: "3 x 12", rest: "60", load: "16-24kg", img: "imagens/agachamento_sumo.jpg" },
-                { id: 'c6', name: "Prancha Abdominal", reps: "4 x 45s", rest: "30", load: "Isometria", img: "imagens/prancha.jpg" }
+                { id: 'c1', name: "Elevação Pélvica", reps: "4 x 10-12", rest: "90", load: "40-60kg", img: "imagens/elevacao_pelvica.gif" },
+                { id: 'c2', name: "Stiff (Barra/Halter)", reps: "4 x 10", rest: "60-90", load: "30-45kg", img: "imagens/stiff.gif" },
+                { id: 'c3', name: "Flexora (Sentada/Deitada)", reps: "3 x 12", rest: "60", load: "30-45kg", img: "imagens/flexora.gif" },
+                { id: 'c4', name: "Cadeira Abdutora", reps: "3 x 15-20", rest: "45", load: "60-85kg", img: "imagens/cadeira_abdutora.gif" },
+                { id: 'c5', name: "Agachamento Sumô", reps: "3 x 12", rest: "60", load: "16-24kg", img: "imagens/agachamento_sumo.gif" },
+                { id: 'c6', name: "Prancha Abdominal", reps: "4 x 45s", rest: "30", load: "Isometria", img: "imagens/prancha.gif" }
             ],
             D: [
-                { id: 'd1', name: "Graviton (Barra Fixa)", reps: "3 x 10-12", rest: "60", load: "P/ 10 reps", img: "imagens/graviton.jpg" },
-                { id: 'd2', name: "Puxada Frente", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/puxada_frente.jpg" },
-                { id: 'd3', name: "Supino Máquina", reps: "3 x 12", rest: "60", load: "15-25kg", img: "imagens/supino_maquina.jpg" },
-                { id: 'd4', name: "Remada Baixa Neutra", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/remada_baixa.jpg" },
-                { id: 'd5', name: "Rosca Halter (Bíceps)", reps: "3 x 12", rest: "45", load: "5-7kg", img: "imagens/rosca_halter.jpg" },
-                { id: 'd6', name: "Abdominal Remador", reps: "4 x Falha", rest: "30", load: "Peso corpo", img: "imagens/abdominal_remador.jpg" }
+                { id: 'd1', name: "Graviton (Barra Fixa)", reps: "3 x 10-12", rest: "60", load: "P/ 10 reps", img: "imagens/graviton.gif" },
+                { id: 'd2', name: "Puxada Frente", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/puxada_frente.gif" },
+                { id: 'd3', name: "Supino Máquina", reps: "3 x 12", rest: "60", load: "15-25kg", img: "imagens/supino_maquina.gif" },
+                { id: 'd4', name: "Remada Baixa Neutra", reps: "3 x 12", rest: "60", load: "25-35kg", img: "imagens/remada_baixa.gif" },
+                { id: 'd5', name: "Rosca Halter (Bíceps)", reps: "3 x 12", rest: "45", load: "5-7kg", img: "imagens/rosca_halter.gif" },
+                { id: 'd6', name: "Abdominal Remador", reps: "4 x Falha", rest: "30", load: "Peso corpo", img: "imagens/abdominal_remador.gif" }
             ]
         };
 
@@ -387,7 +385,7 @@
                     reps: data.reps,
                     load: data.load,
                     rest: data.rest,
-                    img: data.img || "imagens/placeholder.jpg" 
+                    img: data.img || "imagens/placeholder.gif" 
                 };
 
                 setUser({
