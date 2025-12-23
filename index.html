@@ -301,6 +301,7 @@
         const GripVertical = (props) => <IconBase {...props}><circle cx="9" cy="12" r="1" /><circle cx="9" cy="5" r="1" /><circle cx="9" cy="19" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="15" cy="5" r="1" /><circle cx="15" cy="19" r="1" /></IconBase>;
         const ChevronUp = (props) => <IconBase {...props}><polyline points="18 15 12 9 6 15" /></IconBase>;
         const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9" /></IconBase>;
+        const RotateCcw = (props) => <IconBase {...props}><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></IconBase>;
 
         // --- COMPONENTE: SWITCH (IOS STYLE) ---
         const Switch = ({ enabled, setEnabled }) => (
@@ -319,8 +320,6 @@
             const [isSwiping, setIsSwiping] = useState(false);
 
             const onTouchStart = (e) => {
-                // Ignore swipe logic if touching the drag handle (right side) or control buttons
-                // Simply checking if target is the grip or chevron buttons
                 if (e.target.closest('.drag-controls')) return;
 
                 const touchX = e.touches[0].clientX;
@@ -332,11 +331,11 @@
                 if (!isSwiping) return;
                 const currentX = e.touches[0].clientX;
                 const diff = currentX - startX;
-                // Permitir apenas deslizar para a esquerda (negativo)
+                
                 if (diff < 0 && diff > -100) {
                     setOffsetX(diff);
                 } else if (diff > 0) {
-                    setOffsetX(0); // Restore on right swipe
+                    setOffsetX(0); 
                 }
             };
 
@@ -490,12 +489,12 @@
             const [editingIndex, setEditingIndex] = useState(null);
             const [showAddModal, setShowAddModal] = useState(false);
             const [isCustomExercise, setIsCustomExercise] = useState(false);
-            const [isCardioSelected, setIsCardioSelected] = useState(false); // State for Add Modal cardio check
+            const [isCardioSelected, setIsCardioSelected] = useState(false); 
 
             // Estados temporários para Edição
             const [editRepsSets, setEditRepsSets] = useState('');
             const [editRepsCount, setEditRepsCount] = useState('');
-            const [tempWorkoutList, setTempWorkoutList] = useState([]); // Temporary list for edit mode
+            const [tempWorkoutList, setTempWorkoutList] = useState([]); 
 
             // Novos estados para o cadastro
             const [newUserName, setNewUserName] = useState('');
@@ -509,8 +508,14 @@
             useEffect(() => {
                 const saved = localStorage.getItem('gym_user_v2'); 
                 if (saved) {
-                    setUser(JSON.parse(saved));
-                    setView('dashboard');
+                    try {
+                        setUser(JSON.parse(saved));
+                        setView('dashboard');
+                    } catch (e) {
+                         // Corrupted data
+                         localStorage.removeItem('gym_user_v2');
+                         setView('disclaimer');
+                    }
                 } else {
                     setView('disclaimer'); 
                 }
@@ -553,14 +558,19 @@
             };
 
             const startWorkout = (type) => {
+                if (!user.workouts[type]) {
+                    alert("Erro ao carregar treino. Tente resetar o app.");
+                    return;
+                }
                 setCurrentWorkout(type);
                 setCompletedExercises([]);
                 setView('workout');
             };
 
             const goToEditMode = (type) => {
+                if (!user.workouts[type]) return;
                 setCurrentWorkout(type);
-                setTempWorkoutList([...user.workouts[type]]); // Initialize temp list
+                setTempWorkoutList([...user.workouts[type]]); 
                 setView('edit_workout');
             }
 
@@ -571,11 +581,19 @@
                 setShowFinishedModal(true);
             };
 
+            const resetApp = () => {
+                if(confirm("Tem certeza que deseja apagar todos os dados e começar do zero?")) {
+                    localStorage.removeItem('gym_user_v2');
+                    window.location.reload();
+                }
+            };
+
             // Parse helpers
             const parseReps = (repsString) => {
-                const parts = repsString.split('x').map(s => s.trim());
+                if (!repsString) return { sets: '3', reps: '12' };
+                const parts = repsString.toString().split('x').map(s => s.trim());
                 if (parts.length >= 2) return { sets: parts[0], reps: parts[1] };
-                return { sets: '3', reps: '12' }; // Default fallback
+                return { sets: '3', reps: '12' }; 
             };
 
             const openEditModal = (idx) => {
@@ -584,9 +602,8 @@
                 const cardio = isCardioExercise(currentEx.name);
                 
                 if (cardio) {
-                    // For cardio, reps string is basically time
-                    setEditRepsCount(currentEx.reps); // Store time in reps state for simplicity
-                    setEditRepsSets(''); // No sets
+                    setEditRepsCount(currentEx.reps); 
+                    setEditRepsSets(''); 
                 } else {
                     const { sets, reps } = parseReps(currentEx.reps);
                     setEditRepsSets(sets);
@@ -600,7 +617,7 @@
                 
                 let formattedReps = '';
                 if(isCardio) {
-                    formattedReps = reps; // Just time
+                    formattedReps = reps; 
                 } else {
                     formattedReps = `${sets} x ${reps}`;
                 }
@@ -623,7 +640,7 @@
             };
 
             const addExerciseToTemp = (data) => {
-                const isCardio = isCardioSelected; // Use state from Add Modal
+                const isCardio = isCardioSelected; 
                 const formattedReps = isCardio ? data.reps : `${data.sets} x ${data.reps}`;
                 
                 const newExercise = {
@@ -718,6 +735,10 @@
                             <div className="flex flex-col gap-3">
                                 <button onClick={() => setView('login')} className="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg">Concordo</button>
                                 <button onClick={() => setView('goodbye')} className="w-full bg-gray-100 text-gray-500 p-4 rounded-2xl font-bold text-lg hover:bg-gray-200 transition-all">Sair</button>
+                            </div>
+                            
+                            <div className="mt-8 pt-4 border-t border-gray-100">
+                                <button onClick={resetApp} className="text-xs text-red-400 font-bold flex items-center justify-center gap-1 mx-auto hover:text-red-600"><RotateCcw size={12}/> Resetar App</button>
                             </div>
                         </div>
                     </div>
@@ -869,133 +890,50 @@
                 );
             }
 
-            if (view === 'edit_workout') {
+            if (view === 'workout') {
+                // Safety check: ensure currentWorkout exists
+                if (!currentWorkout || !user.workouts[currentWorkout]) {
+                    return (
+                        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-white animate-fade-in">
+                            <p>Erro ao carregar o treino.</p>
+                            <button onClick={() => setView('dashboard')} className="mt-4 text-blue-500">Voltar</button>
+                        </div>
+                    );
+                }
+
+                const progress = Math.round((completedExercises.length / user.workouts[currentWorkout].length) * 100);
                 return (
-                    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 pb-32 animate-fade-in relative">
-                         <div className="bg-white sticky top-0 z-20 px-6 py-4 shadow-sm border-b border-gray-100 flex items-center justify-between">
-                            <button onClick={cancelWorkoutChanges} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ChevronLeft size={24} /></button>
-                            <h2 className="text-xl font-black italic tracking-tight">EDITAR TREINO {currentWorkout}</h2>
-                            <div className="w-10"></div>
-                        </div>
-                        <main className="p-6 space-y-3">
-                            <div className="bg-blue-50 text-blue-800 text-xs font-bold p-3 rounded-xl text-center mb-4">
-                                Dica: Use as setas para reordenar. Deslize para a esquerda para excluir.
+                    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 pb-32 animate-fade-in">
+                        <div className="bg-white sticky top-0 z-20 px-6 py-4 shadow-sm border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <button onClick={() => setView('dashboard')} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ChevronLeft size={24} /></button>
+                                <div className="text-center"><h2 className="text-xl font-black italic tracking-tight">TREINO {currentWorkout}</h2><p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{completedExercises.length} de {user.workouts[currentWorkout].length}</p></div>
+                                <div className="w-10"></div> 
                             </div>
-                            {tempWorkoutList.map((ex, idx) => (
-                                <DraggableListItem 
-                                    key={ex.id || idx} 
-                                    index={idx}
-                                    totalItems={tempWorkoutList.length}
-                                    onDelete={() => removeExerciseFromTemp(idx)}
-                                    onDragStart={onDragStart}
-                                    onDragOver={onDragOver}
-                                    onDrop={onDropTemp}
-                                    onMoveUp={moveUp}
-                                    onMoveDown={moveDown}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 font-bold">{idx + 1}</div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-900 leading-tight">{ex.name}</h4>
-                                            <p className="text-xs text-gray-500 mt-0.5">{ex.reps} • {ex.load}kg</p>
-                                        </div>
-                                    </div>
-                                </DraggableListItem>
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-black transition-all duration-500 ease-out" style={{ width: `${isNaN(progress) ? 0 : progress}%` }}></div></div>
+                        </div>
+                        <main className="p-6 space-y-2">
+                            {user.workouts[currentWorkout].map((ex, idx) => (
+                                <ExerciseCard 
+                                    key={ex.id} 
+                                    exercise={ex}
+                                    isDone={completedExercises.includes(idx)}
+                                    onCheck={() => {
+                                        if (completedExercises.includes(idx)) {
+                                            setCompletedExercises(prev => prev.filter(i => i !== idx));
+                                        } else {
+                                            setCompletedExercises(prev => [...prev, idx]);
+                                        }
+                                    }}
+                                    onEdit={() => openEditModal(idx)}
+                                />
                             ))}
-                            <button onClick={() => { setShowAddModal(true); setIsCustomExercise(false); }} className="w-full py-4 border-2 border-dashed border-gray-300 rounded-2xl text-gray-400 font-bold hover:border-black hover:text-black transition-all flex items-center justify-center gap-2 mt-4"><Plus size={20} /> Adicionar Exercício</button>
                         </main>
-                        
-                        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t flex gap-3 max-w-lg mx-auto">
-                            <button onClick={cancelWorkoutChanges} className="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all">Cancelar</button>
-                            <button onClick={saveWorkoutChanges} className="flex-1 py-4 font-bold text-white bg-green-500 rounded-2xl hover:bg-green-600 transition-all">Salvar</button>
+                        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent max-w-lg mx-auto">
+                            <button onClick={finishWorkout} disabled={completedExercises.length === 0} className={`w-full py-5 rounded-[24px] font-black text-sm uppercase tracking-widest shadow-xl transition-all transform active:scale-95 ${completedExercises.length > 0 ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>{completedExercises.length === user.workouts[currentWorkout].length ? 'Concluir Treino 🎉' : 'Finalizar Treino'}</button>
                         </div>
 
-                         {/* Add Exercise Modal */}
-                         {showAddModal && (
-                            <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-                                <div className="bg-white w-full max-w-lg rounded-t-[32px] p-8 animate-slide-up h-[85vh] overflow-y-auto no-scrollbar">
-                                    <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-                                    <h3 className="text-xl font-bold mb-6 text-gray-900">Novo Exercício</h3>
-                                    <form onSubmit={(e) => {
-                                        e.preventDefault();
-                                        addExerciseToTemp({
-                                            name: e.target.name.value,
-                                            sets: e.target.sets ? e.target.sets.value : '',
-                                            reps: e.target.reps.value,
-                                            load: e.target.load.value,
-                                            rest: e.target.rest ? e.target.rest.value : '0',
-                                            img: e.target.img ? e.target.img.value : ''
-                                        });
-                                    }} className="space-y-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Nome do Exercício</label>
-                                            {!isCustomExercise ? (
-                                                <select name="name" required className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none appearance-none" onChange={(e) => { 
-                                                    if (e.target.value === 'custom') { 
-                                                        setIsCustomExercise(true); 
-                                                        e.target.value = ''; 
-                                                        setIsCardioSelected(false);
-                                                    } else {
-                                                        const cardio = isCardioExercise(e.target.value);
-                                                        setIsCardioSelected(cardio);
-                                                        
-                                                        // Auto-fill logic
-                                                        if (!cardio) {
-                                                            const autoImg = getFileName(e.target.value);
-                                                            const imgInput = document.querySelector('input[name="img"]');
-                                                            if(imgInput) imgInput.value = autoImg;
-                                                        } else {
-                                                            // Clear image field if cardio
-                                                            const imgInput = document.querySelector('input[name="img"]');
-                                                            if(imgInput) imgInput.value = "";
-                                                        }
-                                                    } 
-                                                }}>
-                                                    <option value="" disabled selected>Selecione da lista...</option>
-                                                    {BASIC_EXERCISES_LIST.map(ex => <option key={ex} value={ex}>{ex}</option>)}
-                                                    <option value="custom" className="font-bold text-blue-600">+ Criar outro exercício...</option>
-                                                </select>
-                                            ) : (
-                                                <div className="flex gap-2"><input name="name" required autoFocus className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="Digite o nome..." /><button type="button" onClick={() => setIsCustomExercise(false)} className="px-4 bg-gray-200 rounded-xl font-bold text-gray-500 text-xs hover:bg-gray-300">Voltar</button></div>
-                                            )}
-                                        </div>
-                                        
-                                        {!isCardioSelected && (
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Séries</label><input name="sets" type="number" inputMode="numeric" required className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="3" /></div>
-                                                <div><label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Repetições</label><input name="reps" type="number" inputMode="numeric" required className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="12" /></div>
-                                            </div>
-                                        )}
-
-                                        {isCardioSelected && (
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Tempo (min)</label>
-                                                <input name="reps" type="number" inputMode="numeric" required className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="20" />
-                                            </div>
-                                        )}
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">{isCardioSelected ? 'Nível/Carga' : 'Carga (kg)'}</label>
-                                                <input name="load" type="number" inputMode="numeric" required className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="10" />
-                                            </div>
-                                            
-                                            {!isCardioSelected && (
-                                                <div><label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Descanso (seg)</label><input name="rest" type="number" inputMode="numeric" required className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="60" /></div>
-                                            )}
-                                        </div>
-
-                                        {!isCardioSelected && (
-                                            <div><label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Imagem (Opcional)</label><input name="img" className="w-full bg-gray-100 p-4 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-black outline-none" placeholder="URL da foto" /></div>
-                                        )}
-
-                                        <div className="pt-4 flex gap-3"><button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl">Cancelar</button><button type="submit" className="flex-1 py-4 font-bold text-white bg-black rounded-2xl">Adicionar</button></div>
-                                    </form>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Edit Exercise Modal (From Workout Screen) */}
+                        {/* Edit Modal (During Workout) */}
                         {editingIndex !== null && (
                             <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
                                 <div className="bg-white w-full max-w-lg rounded-t-[32px] p-8 animate-slide-up">
