@@ -14,8 +14,12 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Mobile Drag and Drop Polyfill -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
     
-    <!-- Tailwind Config for Custom Colors/Fonts -->
+    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
@@ -41,6 +45,13 @@
                 }
             }
         }
+        
+        // Initialize Polyfill for Mobile Drag & Drop
+        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        MobileDragDrop.polyfill({
+            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
+            holdToDrag: iOS ? 100 : 50 // Press hold delay
+        });
     </script>
     
     <style>
@@ -58,6 +69,22 @@
             -webkit-appearance: none; 
             margin: 0; 
         }
+        /* Prevent selection during drag */
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        /* Fix drag preview on mobile */
+        .dnd-poly-drag-image {
+            opacity: 0.5 !important;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans selection:bg-black selection:text-white">
@@ -74,60 +101,31 @@
         };
 
         // --- HELPER: NORMALIZE FILENAME ---
-        // Transforma "Supino Inclinado (Halter)" em "supino_inclinado.gif"
         const getFileName = (name) => {
             if (!name) return "";
             return "imagens/" + name.toLowerCase()
-                .split('(')[0] // Remove o que está entre parenteses (ex: (Halter))
+                .split('(')[0] 
                 .trim()
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos (Tríceps -> Triceps)
-                .replace(/ \/ /g, '_') // Troca " / " por "_"
-                .replace(/ /g, '_') // Troca espaços por "_"
-                .replace(/[^a-z0-9_]/g, '') // Remove caracteres especiais
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+                .replace(/ \/ /g, '_') 
+                .replace(/ /g, '_') 
+                .replace(/[^a-z0-9_]/g, '') 
                 + ".gif";
         };
 
-        // --- LISTA DE EXERCÍCIOS BÁSICOS (EM ORDEM ALFABÉTICA) ---
+        // --- LISTA DE EXERCÍCIOS BÁSICOS ---
         const BASIC_EXERCISES_LIST = [
-            "Abdominal Infra", 
-            "Abdominal Supra", 
-            "Agachamento Livre", 
-            "Agachamento Smith", 
-            "Avanço / Afundo",
-            "Bike (Cardio)", 
-            "Cadeira Abdutora",
-            "Cadeira Extensora", 
-            "Crucifixo", 
-            "Desenvolvimento Halteres", 
-            "Elevação Frontal", 
-            "Elevação Lateral", 
-            "Elevação Pélvica", 
-            "Eliptico (Cardio)",
-            "Encolhimento",
-            "Esteira (Cardio)", 
-            "Graviton", 
-            "Leg Press 45°", 
-            "Mesa Flexora", 
-            "Panturrilha",
-            "Peck Deck / Voador", 
-            "Prancha", 
-            "Puxada Alta / Frente", 
-            "Remada Baixa", 
-            "Remada Curvada", 
-            "Remo Indoor (Cardio)",
-            "Rosca Direta", 
-            "Rosca Martelo", 
-            "Rosca Scott", 
-            "Stiff", 
-            "Supino Inclinado (Halter)", 
-            "Supino Reto (Barra)", 
-            "Tríceps Corda", 
-            "Tríceps Francês", 
-            "Tríceps Pulley", 
-            "Tríceps Testa"
+            "Abdominal Infra", "Abdominal Supra", "Agachamento Livre", "Agachamento Smith", "Avanço / Afundo",
+            "Bike (Cardio)", "Cadeira Abdutora", "Cadeira Extensora", "Crucifixo", "Desenvolvimento Halteres", 
+            "Elevação Frontal", "Elevação Lateral", "Elevação Pélvica", "Eliptico (Cardio)", "Encolhimento",
+            "Esteira (Cardio)", "Graviton", "Leg Press 45°", "Mesa Flexora", "Panturrilha",
+            "Peck Deck / Voador", "Prancha", "Puxada Alta / Frente", "Remada Baixa", "Remada Curvada", 
+            "Remo Indoor (Cardio)", "Rosca Direta", "Rosca Martelo", "Rosca Scott", "Stiff", 
+            "Supino Inclinado (Halter)", "Supino Reto (Barra)", "Tríceps Corda", "Tríceps Francês", 
+            "Tríceps Pulley", "Tríceps Testa"
         ].sort(); 
 
-        // --- MODELOS DE TREINO ---
+        // --- MODELOS DE TREINO (Mesmo do anterior, resumido para brevidade no exemplo, mas completo no uso) ---
         const WORKOUT_TEMPLATES = {
             female: {
                 beginner: {
@@ -299,6 +297,8 @@
         const MoreHorizontal = (props) => <IconBase {...props}><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></IconBase>;
         const AlertTriangle = (props) => <IconBase {...props}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></IconBase>;
         const GripVertical = (props) => <IconBase {...props}><circle cx="9" cy="12" r="1" /><circle cx="9" cy="5" r="1" /><circle cx="9" cy="19" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="15" cy="5" r="1" /><circle cx="15" cy="19" r="1" /></IconBase>;
+        const ChevronUp = (props) => <IconBase {...props}><polyline points="18 15 12 9 6 15" /></IconBase>;
+        const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9" /></IconBase>;
 
         // --- COMPONENTE: SWITCH (IOS STYLE) ---
         const Switch = ({ enabled, setEnabled }) => (
@@ -311,17 +311,17 @@
         );
 
         // --- COMPONENTE: DRAGGABLE ITEM (SWIPE TO DELETE + DRAG) ---
-        const DraggableListItem = ({ children, onDelete, onDragStart, onDragOver, onDrop, index }) => {
+        const DraggableListItem = ({ children, onDelete, onDragStart, onDragOver, onDrop, onMoveUp, onMoveDown, index, totalItems }) => {
             const [offsetX, setOffsetX] = useState(0);
             const [startX, setStartX] = useState(0);
             const [isSwiping, setIsSwiping] = useState(false);
 
             const onTouchStart = (e) => {
-                // Ignore swipe logic if touching the drag handle (right side)
-                const touchX = e.touches[0].clientX;
-                const width = e.currentTarget.offsetWidth;
-                if (touchX > width - 50) return; // Drag handle zone
+                // Ignore swipe logic if touching the drag handle (right side) or control buttons
+                // Simply checking if target is the grip or chevron buttons
+                if (e.target.closest('.drag-controls')) return;
 
+                const touchX = e.touches[0].clientX;
                 setStartX(touchX);
                 setIsSwiping(true);
             };
@@ -371,7 +371,35 @@
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
                     >
-                        {children}
+                        <div className="p-4 flex items-center justify-between">
+                            {/* Left side content passed as children */}
+                            <div className="flex-1">
+                                {children}
+                            </div>
+
+                            {/* Right side controls: Move Up/Down and Grip */}
+                            <div className="flex items-center gap-1 drag-controls pl-2 border-l border-gray-100 ml-2">
+                                <div className="flex flex-col gap-2">
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); onMoveUp(index); }}
+                                        disabled={index === 0}
+                                        className={`p-1 rounded-md ${index === 0 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-black'}`}
+                                    >
+                                        <ChevronUp size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); onMoveDown(index); }}
+                                        disabled={index === totalItems - 1}
+                                        className={`p-1 rounded-md ${index === totalItems - 1 ? 'text-gray-200' : 'text-gray-400 hover:bg-gray-100 hover:text-black'}`}
+                                    >
+                                        <ChevronDown size={16} />
+                                    </button>
+                                </div>
+                                <div className="text-gray-300 cursor-grab active:cursor-grabbing p-2 noselect">
+                                    <GripVertical size={20} />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
@@ -630,6 +658,24 @@
                 setTempWorkoutList(copyListItems);
             };
 
+            const moveUp = (index) => {
+                if (index === 0) return;
+                const copyList = [...tempWorkoutList];
+                const item = copyList[index];
+                copyList[index] = copyList[index - 1];
+                copyList[index - 1] = item;
+                setTempWorkoutList(copyList);
+            };
+
+            const moveDown = (index) => {
+                if (index === tempWorkoutList.length - 1) return;
+                const copyList = [...tempWorkoutList];
+                const item = copyList[index];
+                copyList[index] = copyList[index + 1];
+                copyList[index + 1] = item;
+                setTempWorkoutList(copyList);
+            };
+
             const saveWorkoutChanges = () => {
                 setUser({
                     ...user,
@@ -657,9 +703,9 @@
                             </div>
                             <h2 className="text-xl font-black text-gray-900 mb-4 uppercase tracking-wide">Aviso Importante<br/>de Saúde e Segurança</h2>
                             <div className="text-sm text-gray-600 space-y-4 text-justify leading-relaxed mb-8 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
-                                <p>Os treinos e exercícios pré-carregados neste aplicativo possuem caráter exclusivamente ilustrativo...</p>
-                                <p>O desenvolvedor deste aplicativo não é um profissional de educação física...</p>
-                                <p>Antes de iniciar qualquer atividade física, consulte um profissional...</p>
+                                <p>Os treinos e exercícios pré-carregados neste aplicativo possuem caráter exclusivamente ilustrativo.</p>
+                                <p>O desenvolvedor deste aplicativo não é um profissional de educação física.</p>
+                                <p>Antes de iniciar qualquer atividade física, consulte um profissional.</p>
                             </div>
                             <div className="flex flex-col gap-3">
                                 <button onClick={() => setView('login')} className="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg">Concordo</button>
@@ -772,27 +818,25 @@
                         </div>
                         <main className="p-6 space-y-3">
                             <div className="bg-blue-50 text-blue-800 text-xs font-bold p-3 rounded-xl text-center mb-4">
-                                Dica: Segure e arraste para reordenar. Deslize para a esquerda para excluir.
+                                Dica: Use as setas para reordenar. Deslize para a esquerda para excluir.
                             </div>
                             {tempWorkoutList.map((ex, idx) => (
                                 <DraggableListItem 
                                     key={idx} 
                                     index={idx}
+                                    totalItems={tempWorkoutList.length}
                                     onDelete={() => removeExerciseFromTemp(idx)}
                                     onDragStart={onDragStart}
                                     onDragOver={onDragOver}
                                     onDrop={onDropTemp}
+                                    onMoveUp={moveUp}
+                                    onMoveDown={moveDown}
                                 >
-                                    <div className="p-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 font-bold">{idx + 1}</div>
-                                            <div>
-                                                <h4 className="font-bold text-gray-900 leading-tight">{ex.name}</h4>
-                                                <p className="text-xs text-gray-500 mt-0.5">{ex.reps} • {ex.load}kg</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-gray-300 cursor-grab active:cursor-grabbing p-2">
-                                            <GripVertical size={20} />
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 font-bold">{idx + 1}</div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 leading-tight">{ex.name}</h4>
+                                            <p className="text-xs text-gray-500 mt-0.5">{ex.reps} • {ex.load}kg</p>
                                         </div>
                                     </div>
                                 </DraggableListItem>
